@@ -42,16 +42,16 @@ export default function ChatApp() {
   return (
     <div
       style={{
+        height: "100dvh", // dynamic mobile height
         display: "flex",
         flexDirection: "column",
-        height: "100dvh", // dynamic viewport height fixes mobile keyboard issue
         background: "#121212",
         fontFamily: "sans-serif",
         boxSizing: "border-box",
-        overflow: "hidden", // prevent scroll bounce
+        overflow: "hidden",
       }}
     >
-      {/* Message Area */}
+      {/* Chat messages */}
       <div
         style={{
           flex: 1,
@@ -60,8 +60,8 @@ export default function ChatApp() {
           flexDirection: "column",
           gap: "0.5rem",
           padding: "1rem",
-          paddingBottom: "0.5rem",
           boxSizing: "border-box",
+          WebkitOverflowScrolling: "touch", // mobile scroll smoothness
         }}
       >
         {chat.map((msg, idx) => (
@@ -75,7 +75,7 @@ export default function ChatApp() {
               borderRadius: "1rem",
               maxWidth: "80%",
               wordBreak: "break-word",
-              fontSize: "0.95rem",
+              fontSize: "1rem", // <-- keep this at 16px or more to avoid zoom
             }}
           >
             {msg.text}
@@ -84,7 +84,7 @@ export default function ChatApp() {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Chat input */}
       <div
         style={{
           padding: "0.75rem 1rem",
@@ -96,6 +96,8 @@ export default function ChatApp() {
         <input
           type="text"
           value={message}
+          inputMode="text"
+          autoComplete="off"
           placeholder="Write a message..."
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
@@ -107,7 +109,7 @@ export default function ChatApp() {
             outline: "none",
             background: "#1c1c1e",
             color: "#fff",
-            fontSize: "1rem",
+            fontSize: "1rem", // **IMPORTANT: iOS requires >= 16px to avoid zoom**
           }}
         />
       </div>
