@@ -10,34 +10,31 @@ export default function ChatApp() {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Preserve socket ID across refreshes
   useEffect(() => {
-    const saveId = () => {
-      if (socketId) localStorage.setItem("lastSocketId", socketId);
-    };
-    window.addEventListener("beforeunload", saveId);
-    return () => window.removeEventListener("beforeunload", saveId);
-  }, [socketId]);
-
-  useEffect(() => {
-    const oldId = localStorage.getItem("lastSocketId");
-
     socket.on("connect", () => {
-      // Update to new socket ID and store for next refresh
-      setSocketId(socket.id);
-      localStorage.setItem("lastSocketId", socket.id);
+      const id = socket.id;
+      setSocketId(id);
 
+      // Maintain list of this client's socket IDs across refreshes
+      const stored = JSON.parse(localStorage.getItem("socketIds") || "[]");
+      if (!stored.includes(id)) {
+        stored.push(id);
+        localStorage.setItem("socketIds", JSON.stringify(stored));
+      }
+
+      // Handle history mapping using all past IDs
       socket.on("chat-history", (history) => {
-        const idToMatch = oldId || socket.id;
+        const ids = JSON.parse(localStorage.getItem("socketIds") || "[]");
         const formattedHistory = history.map((msg) => ({
           text: msg.text,
-          from: msg.sender === idToMatch ? "me" : "other",
+          from: ids.includes(msg.sender) ? "me" : "other",
         }));
         setChat(formattedHistory);
       });
 
+      // Handle live messages (only current session)
       socket.on("message", (data) => {
-        const from = data.sender === socket.id ? "me" : "other";
+        const from = data.sender === id ? "me" : "other";
         setChat((prev) => [...prev, { text: data.text, from }]);
       });
     });
@@ -78,7 +75,6 @@ export default function ChatApp() {
         overflow: "hidden",
       }}
     >
-      {/* Chat messages */}
       <div
         style={{
           flex: 1,
@@ -111,7 +107,6 @@ export default function ChatApp() {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Chat input */}
       <div
         style={{
           padding: "0.75rem 1rem",
