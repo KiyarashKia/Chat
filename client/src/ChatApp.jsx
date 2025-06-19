@@ -7,10 +7,19 @@ export default function ChatApp() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     socket.on("connect", () => {
       console.log("✅ Connected to socket:", socket.id);
+    });
+
+    socket.on("chat-history", (history) => {
+      const formatted = history.map((msg) => ({
+        ...msg,
+        from: msg.sender === socket.id ? "me" : "other",
+      }));
+      setChat(formatted);
     });
 
     socket.on("message", (data) => {
@@ -19,12 +28,20 @@ export default function ChatApp() {
       }
     });
 
-    return () => socket.off("message");
+    return () => {
+      socket.off("connect");
+      socket.off("chat-history");
+      socket.off("message");
+    };
   }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const send = () => {
     const trimmed = message.trim();
@@ -37,7 +54,6 @@ export default function ChatApp() {
       setMessage("");
     }
   };
-  
 
   return (
     <div
@@ -94,6 +110,7 @@ export default function ChatApp() {
         }}
       >
         <input
+          ref={inputRef}
           type="text"
           value={message}
           inputMode="text"

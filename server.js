@@ -7,16 +7,27 @@ const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
-
 const io = new Server(server, {
-  cors: { origin: "*" } // tighten this in production
+  cors: { origin: "*" }
 });
+
+const messageHistory = []; // stores last 10 messages
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  // Send last 10 messages to new user
+  socket.emit("chat-history", messageHistory);
+
   socket.on("message", (data) => {
-    io.emit("message", data); // broadcast to all
+    // Save to history
+    messageHistory.push(data);
+    if (messageHistory.length > 10) {
+      messageHistory.shift(); // keep only last 10
+    }
+
+    // Broadcast to others
+    socket.broadcast.emit("message", data);
   });
 
   socket.on("disconnect", () => {
