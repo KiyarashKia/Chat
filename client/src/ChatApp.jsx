@@ -6,24 +6,32 @@ const socket = io("https://chat-backend-27gg.onrender.com");
 export default function ChatApp() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
+  const [socketId, setSocketId] = useState(null);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socket.on("connect", () => {});
+    socket.on("connect", () => {
+      const myId = socket.id;
+      setSocketId(myId);
 
-    socket.on("chat-history", (history) => {
-      const formatted = history.map((msg) => ({
-        ...msg,
-        from: msg.sender === socket.id ? "me" : "other",
-      }));
-      setChat(formatted);
-    });
+      socket.on("chat-history", (history) => {
+        const formatted = history.map((msg) => ({
+          ...msg,
+          from: msg.sender === myId ? "me" : "other",
+        }));
+        setChat(formatted);
+      });
 
-    socket.on("message", (data) => {
-      if (data.sender !== socket.id) {
-        setChat((prev) => [...prev, { text: data.text, from: "other" }]);
-      }
+      socket.on("message", (data) => {
+        setChat((prev) => [
+          ...prev,
+          {
+            text: data.text,
+            from: data.sender === myId ? "me" : "other",
+          },
+        ]);
+      });
     });
 
     return () => {
@@ -47,7 +55,7 @@ export default function ChatApp() {
       setChat((prev) => [...prev, { text: trimmed, from: "me" }]);
       socket.emit("message", {
         text: trimmed,
-        sender: socket.id,
+        sender: socketId,
       });
       setMessage("");
     }
