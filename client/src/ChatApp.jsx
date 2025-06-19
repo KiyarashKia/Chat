@@ -15,23 +15,12 @@ export default function ChatApp() {
       const myId = socket.id;
       setSocketId(myId);
 
-      // Fetch chat history only after socketId is set
       socket.on("chat-history", (history) => {
-        const formatted = history.map((msg) => ({
-          ...msg,
-          from: msg.sender === myId ? "me" : "other",
-        }));
-        setChat(formatted);
+        setChat(history); // Use the history directly since it includes the 'from' field
       });
 
       socket.on("message", (data) => {
-        setChat((prev) => [
-          ...prev,
-          {
-            text: data.text,
-            from: data.sender === myId ? "me" : "other",
-          },
-        ]);
+        setChat((prev) => [...prev, data]); // Use the message data directly
       });
     });
 

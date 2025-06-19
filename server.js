@@ -19,24 +19,25 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   // Send last 10 messages to new user
-  socket.emit("chat-history", messageHistory.map((msg) => ({
-    ...msg,
-    sender: msg.sender || "unknown", // Ensure sender field exists
-  })));
+  socket.emit("chat-history", messageHistory);
 
   socket.on("message", (data) => {
     // Validate and save to history
     const validatedMessage = {
       text: data.text,
-      sender: data.sender || socket.id, // Default to current socket ID if sender is missing
+      sender: data.sender,
+      from: "me" // Store the original sender's perspective
     };
     messageHistory.push(validatedMessage);
     if (messageHistory.length > MAX_MESSAGES) {
       messageHistory.shift(); // keep only last 10
     }
 
-    // Broadcast to others
-    socket.broadcast.emit("message", validatedMessage);
+    // Broadcast to others with their perspective
+    socket.broadcast.emit("message", {
+      ...validatedMessage,
+      from: "other" // Recipients see it as from other
+    });
   });
 
   socket.on("disconnect", () => {
