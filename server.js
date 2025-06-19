@@ -12,6 +12,8 @@ const io = new Server(server, {
 });
 
 const messageHistory = []; // stores last 10 messages
+const MAX_MESSAGES = 10;
+const HISTORY_CLEAR_INTERVAL = 20 * 60 * 1000; // 20 minutes in milliseconds
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -22,7 +24,7 @@ io.on("connection", (socket) => {
   socket.on("message", (data) => {
     // Save to history
     messageHistory.push(data);
-    if (messageHistory.length > 10) {
+    if (messageHistory.length > MAX_MESSAGES) {
       messageHistory.shift(); // keep only last 10
     }
 
@@ -34,6 +36,12 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id);
   });
 });
+
+// Clear history every 20 minutes
+setInterval(() => {
+  messageHistory.length = 0;
+  console.log("Chat history cleared.");
+}, HISTORY_CLEAR_INTERVAL);
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {

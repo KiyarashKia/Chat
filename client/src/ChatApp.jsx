@@ -18,7 +18,7 @@ export default function ChatApp() {
       socket.on("chat-history", (history) => {
         const formatted = history.map((msg) => ({
           ...msg,
-          from: msg.sender === myId ? "me" : "other",
+          from: msg.sender === socketId ? "me" : "other",
         }));
         setChat(formatted);
       });
