@@ -10,9 +10,7 @@ export default function ChatApp() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("✅ Connected to socket:", socket.id);
-    });
+    socket.on("connect", () => {});
 
     socket.on("chat-history", (history) => {
       const formatted = history.map((msg) => ({
