@@ -16,11 +16,21 @@ export default function ChatApp() {
       setSocketId(myId);
 
       socket.on("chat-history", (history) => {
-        setChat(history); // Use the history directly since it includes the 'from' field
+        // Format history messages based on sender
+        const formattedHistory = history.map((msg) => ({
+          text: msg.text,
+          from: msg.sender === myId ? "me" : "other",
+        }));
+        setChat(formattedHistory);
       });
 
       socket.on("message", (data) => {
-        setChat((prev) => [...prev, data]); // Use the message data directly
+        // Format incoming message based on sender
+        const formattedMsg = {
+          text: data.text,
+          from: data.sender === myId ? "me" : "other",
+        };
+        setChat((prev) => [...prev, formattedMsg]);
       });
     });
 
@@ -42,6 +52,7 @@ export default function ChatApp() {
   const send = () => {
     const trimmed = message.trim();
     if (trimmed) {
+      // Show own message immediately
       setChat((prev) => [...prev, { text: trimmed, from: "me" }]);
       socket.emit("message", {
         text: trimmed,
@@ -54,7 +65,7 @@ export default function ChatApp() {
   return (
     <div
       style={{
-        height: "100dvh", // dynamic mobile height
+        height: "100dvh",
         display: "flex",
         flexDirection: "column",
         background: "#121212",
@@ -73,7 +84,7 @@ export default function ChatApp() {
           gap: "0.5rem",
           padding: "1rem",
           boxSizing: "border-box",
-          WebkitOverflowScrolling: "touch", // mobile scroll smoothness
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {chat.map((msg, idx) => (
@@ -87,7 +98,7 @@ export default function ChatApp() {
               borderRadius: "1rem",
               maxWidth: "80%",
               wordBreak: "break-word",
-              fontSize: "1rem", // <-- keep this at 16px or more to avoid zoom
+              fontSize: "1rem",
             }}
           >
             {msg.text}
@@ -122,7 +133,7 @@ export default function ChatApp() {
             outline: "none",
             background: "#1c1c1e",
             color: "#fff",
-            fontSize: "1rem", // **IMPORTANT: iOS requires >= 16px to avoid zoom**
+            fontSize: "1rem",
           }}
         />
       </div>
