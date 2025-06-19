@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 const socket = io("https://chat-backend.onrender.com");
@@ -6,43 +6,51 @@ const socket = io("https://chat-backend.onrender.com");
 export default function ChatApp() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
-    console.log("Attempting to connect to socket...");
     socket.on("connect", () => {
-      console.log("Connected to socket:", socket.id);
+      console.log("✅ Connected to socket:", socket.id);
     });
+
     socket.on("message", (msg) => {
       setChat((prev) => [...prev, { text: msg, from: "other" }]);
     });
-    return () => socket.off("message");
+
+    return () => socket.disconnect();
   }, []);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
+
   const send = () => {
-    if (message.trim()) {
-      setChat((prev) => [...prev, { text: message, from: "me" }]);
-      socket.emit("message", message);
+    const trimmed = message.trim();
+    if (trimmed) {
+      setChat((prev) => [...prev, { text: trimmed, from: "me" }]);
+      socket.emit("message", trimmed);
       setMessage("");
     }
   };
 
   return (
     <div style={{
-      height: "100vh",
       display: "flex",
       flexDirection: "column",
+      height: "100vh",
       background: "#121212",
-      color: "#fff",
       fontFamily: "sans-serif",
-      padding: "1rem"
+      padding: "1rem",
+      boxSizing: "border-box"
     }}>
+      {/* Message Area */}
       <div style={{
         flex: 1,
         overflowY: "auto",
-        marginBottom: "1rem",
         display: "flex",
         flexDirection: "column",
-        gap: "0.5rem"
+        gap: "0.5rem",
+        paddingBottom: "0.5rem"
       }}>
         {chat.map((msg, idx) => (
           <div
@@ -50,18 +58,26 @@ export default function ChatApp() {
             style={{
               alignSelf: msg.from === "me" ? "flex-end" : "flex-start",
               background: msg.from === "me" ? "#1f6feb" : "#30363d",
-              padding: "0.5rem 1rem",
+              color: "#fff",
+              padding: "0.6rem 1rem",
               borderRadius: "1rem",
-              maxWidth: "60%",
-              wordBreak: "break-word"
+              maxWidth: "80%",
+              wordBreak: "break-word",
+              fontSize: "0.95rem",
             }}
           >
             {msg.text}
           </div>
         ))}
+        <div ref={chatEndRef} />
       </div>
 
-      <div style={{ display: "flex", gap: "0.5rem" }}>
+      {/* Input */}
+      <div style={{
+        display: "flex",
+        paddingTop: "0.5rem",
+        borderTop: "1px solid #2a2a2a"
+      }}>
         <input
           type="text"
           value={message}
@@ -70,12 +86,13 @@ export default function ChatApp() {
           onKeyDown={(e) => e.key === "Enter" && send()}
           style={{
             flex: 1,
-            padding: "0.75rem",
+            padding: "0.8rem 1rem",
             borderRadius: "999px",
             border: "none",
             outline: "none",
             background: "#1c1c1e",
-            color: "#fff"
+            color: "#fff",
+            fontSize: "1rem"
           }}
         />
       </div>
