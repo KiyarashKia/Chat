@@ -10,27 +10,35 @@ export default function ChatApp() {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Preserve socket ID across refreshes
   useEffect(() => {
+    const saveId = () => {
+      if (socketId) localStorage.setItem("lastSocketId", socketId);
+    };
+    window.addEventListener("beforeunload", saveId);
+    return () => window.removeEventListener("beforeunload", saveId);
+  }, [socketId]);
+
+  useEffect(() => {
+    const oldId = localStorage.getItem("lastSocketId");
+
     socket.on("connect", () => {
-      const myId = socket.id;
-      setSocketId(myId);
+      // Update to new socket ID and store for next refresh
+      setSocketId(socket.id);
+      localStorage.setItem("lastSocketId", socket.id);
 
       socket.on("chat-history", (history) => {
-        // Format history messages based on sender
+        const idToMatch = oldId || socket.id;
         const formattedHistory = history.map((msg) => ({
           text: msg.text,
-          from: msg.sender === myId ? "me" : "other",
+          from: msg.sender === idToMatch ? "me" : "other",
         }));
         setChat(formattedHistory);
       });
 
       socket.on("message", (data) => {
-        // Format incoming message based on sender
-        const formattedMsg = {
-          text: data.text,
-          from: data.sender === myId ? "me" : "other",
-        };
-        setChat((prev) => [...prev, formattedMsg]);
+        const from = data.sender === socket.id ? "me" : "other";
+        setChat((prev) => [...prev, { text: data.text, from }]);
       });
     });
 
@@ -52,12 +60,8 @@ export default function ChatApp() {
   const send = () => {
     const trimmed = message.trim();
     if (trimmed) {
-      // Show own message immediately
       setChat((prev) => [...prev, { text: trimmed, from: "me" }]);
-      socket.emit("message", {
-        text: trimmed,
-        sender: socketId,
-      });
+      socket.emit("message", { text: trimmed, sender: socketId });
       setMessage("");
     }
   };
@@ -140,4 +144,3 @@ export default function ChatApp() {
     </div>
   );
 }
-
