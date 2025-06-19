@@ -2,7 +2,6 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
-const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -51,11 +50,6 @@ setInterval(() => {
   messageHistory.length = 0;
   console.log("Chat history cleared.");
 }, HISTORY_CLEAR_INTERVAL);
-
-// Explicitly handle the root path to serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, "client", "index.html"));
-});
 
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
