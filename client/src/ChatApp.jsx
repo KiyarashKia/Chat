@@ -40,24 +40,30 @@ export default function ChatApp() {
   
 
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      height: "100vh",
-      background: "#121212",
-      fontFamily: "sans-serif",
-      padding: "1rem",
-      boxSizing: "border-box"
-    }}>
-      {/* Message Area */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
+    <div
+      style={{
         display: "flex",
         flexDirection: "column",
-        gap: "0.5rem",
-        paddingBottom: "0.5rem"
-      }}>
+        height: "100dvh", // dynamic viewport height fixes mobile keyboard issue
+        background: "#121212",
+        fontFamily: "sans-serif",
+        boxSizing: "border-box",
+        overflow: "hidden", // prevent scroll bounce
+      }}
+    >
+      {/* Message Area */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
+          padding: "1rem",
+          paddingBottom: "0.5rem",
+          boxSizing: "border-box",
+        }}
+      >
         {chat.map((msg, idx) => (
           <div
             key={idx}
@@ -79,11 +85,14 @@ export default function ChatApp() {
       </div>
 
       {/* Input */}
-      <div style={{
-        display: "flex",
-        paddingTop: "0.5rem",
-        borderTop: "1px solid #2a2a2a"
-      }}>
+      <div
+        style={{
+          padding: "0.75rem 1rem",
+          borderTop: "1px solid #2a2a2a",
+          background: "#121212",
+          boxSizing: "border-box",
+        }}
+      >
         <input
           type="text"
           value={message}
@@ -91,14 +100,14 @@ export default function ChatApp() {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           style={{
-            flex: 1,
+            width: "100%",
             padding: "0.8rem 1rem",
             borderRadius: "999px",
             border: "none",
             outline: "none",
             background: "#1c1c1e",
             color: "#fff",
-            fontSize: "1rem"
+            fontSize: "1rem",
           }}
         />
       </div>
