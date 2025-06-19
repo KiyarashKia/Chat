@@ -13,11 +13,13 @@ export default function ChatApp() {
       console.log("✅ Connected to socket:", socket.id);
     });
 
-    socket.on("message", (msg) => {
-      setChat((prev) => [...prev, { text: msg, from: "other" }]);
+    socket.on("message", (data) => {
+      if (data.sender !== socket.id) {
+        setChat((prev) => [...prev, { text: data.text, from: "other" }]);
+      }
     });
 
-    return () => socket.disconnect();
+    return () => socket.off("message");
   }, []);
 
   useEffect(() => {
@@ -28,10 +30,14 @@ export default function ChatApp() {
     const trimmed = message.trim();
     if (trimmed) {
       setChat((prev) => [...prev, { text: trimmed, from: "me" }]);
-      socket.emit("message", trimmed);
+      socket.emit("message", {
+        text: trimmed,
+        sender: socket.id,
+      });
       setMessage("");
     }
   };
+  
 
   return (
     <div style={{
